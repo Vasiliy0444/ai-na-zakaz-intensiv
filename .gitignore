@@ -1,0 +1,10 @@
+node_modules/
+# Генерируются scripts/build-pages.mjs из src/template.html
+/index.html
+/a/
+/b/
+/c/
+/privacy/
+# Отчёты и скриншоты проверок
+/qa-report/
+.DS_Store

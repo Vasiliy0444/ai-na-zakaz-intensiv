@@ -1,0 +1,62 @@
+@import 'tailwindcss';
+
+/* Шрифты с кириллицей, свои файлы (без запросов к Google). Браузер скачивает только те начертания и диапазоны символов, что реально есть на странице. */
+@import '@fontsource/inter/400.css';
+@import '@fontsource/inter/600.css';
+@import '@fontsource/inter/700.css';
+@import '@fontsource/inter-tight/900.css';
+@import '@fontsource/onest/900.css';
+@import '@fontsource/fira-sans-extra-condensed/900.css';
+
+@import './tokens.css';
+@import './base.css';
+@import './components.css';
+
+/* Анимация телефона «ИИ собирает сайт»: один цикл 12 секунд */
+@keyframes k-msg {
+  0% { opacity: 0; transform: translateY(8px); }
+  5%, 88% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; }
+}
+
+@keyframes k-typing {
+  0%, 6% { opacity: 0; }
+  8%, 16% { opacity: 1; }
+  18%, 100% { opacity: 0; }
+}
+
+@keyframes k-dot {
+  0%, 100% { opacity: 0.3; }
+  50% { opacity: 1; }
+}
+
+@keyframes k-b1 {
+  0%, 18% { opacity: 0; transform: translateY(10px); }
+  22%, 88% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; }
+}
+
+@keyframes k-b2 {
+  0%, 24% { opacity: 0; transform: translateY(10px); }
+  30%, 88% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; }
+}
+
+@keyframes k-b3 {
+  0%, 34% { opacity: 0; transform: translateY(10px); }
+  40%, 88% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; }
+}
+
+@keyframes k-btn {
+  0%, 44% { opacity: 0; transform: scale(0.9); }
+  50% { opacity: 1; transform: scale(1.06); }
+  54%, 88% { opacity: 1; transform: scale(1); }
+  95%, 100% { opacity: 0; }
+}
+
+@keyframes k-done {
+  0%, 56% { opacity: 0; transform: translateY(6px); }
+  60%, 88% { opacity: 1; transform: none; }
+  95%, 100% { opacity: 0; }
+}
