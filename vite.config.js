@@ -1,11 +1,12 @@
 import { resolve } from 'node:path';
 import { defineConfig } from 'vite';
 import tailwindcss from '@tailwindcss/vite';
+import { BASE_PATH } from './src/config.js';
 
 // GitHub Pages отдаёт сайт из main:/docs по адресу /ai-na-zakaz-intensiv/.
 // Страницы index.html, a/, b/, c/, privacy/ генерирует scripts/build-pages.mjs из src/template.html.
 export default defineConfig({
-  base: '/ai-na-zakaz-intensiv/',
+  base: BASE_PATH,
   plugins: [tailwindcss()],
   build: {
     outDir: 'docs',

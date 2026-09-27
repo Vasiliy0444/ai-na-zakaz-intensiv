@@ -4,6 +4,7 @@ import { createHash } from 'node:crypto';
 import { readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { BASE_PATH } from '../src/config.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const docs = resolve(root, 'docs');
@@ -44,7 +45,6 @@ function csp(hashes) {
 }
 
 // Предзагрузка шрифтов первого экрана: кириллица Inter и шрифт заголовка своего варианта.
-const BASE = '/ai-na-zakaz-intensiv/';
 const assets = readdirSync(resolve(docs, 'assets'));
 const findFont = (prefix) => assets.find((name) => name.startsWith(prefix) && name.endsWith('.woff2'));
 const COMMON_FONTS = ['inter-cyrillic-400-normal-', 'inter-cyrillic-600-normal-'];
@@ -60,7 +60,7 @@ function preloadTags(html) {
   return prefixes
     .map(findFont)
     .filter(Boolean)
-    .map((name) => `<link rel="preload" as="font" type="font/woff2" href="${BASE}assets/${name}" crossorigin>`);
+    .map((name) => `<link rel="preload" as="font" type="font/woff2" href="${BASE_PATH}assets/${name}" crossorigin>`);
 }
 
 for (const file of htmlFiles(docs)) {

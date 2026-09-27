@@ -25,9 +25,12 @@ export const HOOK_HEADLINES = {
   zero: 'Можно ли с&nbsp;нуля заработать на&nbsp;<span class="h1-ai">ИИ</span>, если ты студент и&nbsp;не&nbsp;программист?',
 };
 
+// Путь сайта на GitHub Pages (имя репозитория). Меняется только здесь.
+export const BASE_PATH = '/ai-na-zakaz-intensiv/';
+
 export const SITE = {
   title: 'Как заработать на ИИ в 2026 году и выйти на стабильные $1000 в месяц — «ИИ на заказ»',
   description: 'Делаешь для бизнеса ИИ-услуги: сайты, Telegram-ботов, контент, дизайн, автоматизацию. 3–4 заказа по $300 в месяц — это и есть $1000. Бесплатный интенсив в Telegram, 3 урока.',
   ogTitle: 'Как заработать на ИИ в 2026 году и выйти на стабильные $1000 в месяц',
-  url: 'https://vasiliy0444.github.io/ai-na-zakaz-intensiv/',
+  url: `https://vasiliy0444.github.io${BASE_PATH}`,
 };

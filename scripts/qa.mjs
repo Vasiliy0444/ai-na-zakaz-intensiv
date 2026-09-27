@@ -72,8 +72,13 @@ async function measure(page) {
         if (r.height < MIN_TAP || r.width < MIN_TAP) smallTaps.push(`${el.tagName.toLowerCase()} «${el.textContent.trim().slice(0, 30)}» ${Math.round(r.width)}x${Math.round(r.height)}`);
       }
 
+      const badCtas = [...document.querySelectorAll('[data-cta]')]
+        .map((a) => a.getAttribute('href') ?? '')
+        .filter((href) => !(href.startsWith('https://t.me/') || (href.startsWith('#') && href.length > 1 && document.querySelector(href))));
+
       return {
         variant: document.documentElement.dataset.variant,
+        badCtas,
         overflowX,
         heroCta: hero ? { top: Math.round(hero.top), bottom: Math.round(hero.bottom) } : null,
         heroCtaInFold: hero ? hero.bottom <= window.innerHeight : false,
@@ -153,6 +158,27 @@ try {
   })();
   report.split = { counts, ...forced };
 
+  // Без JavaScript: контент виден, кнопки ведут в бот или к существующему якорю.
+  report.noJs = [];
+  for (const path of ['', 'a/', 'b/', 'c/']) {
+    const page = await browser.newPage();
+    await page.setJavaScriptEnabled(false);
+    await page.setViewport({ width: 375, height: 812, deviceScaleFactor: 2, isMobile: true, hasTouch: true });
+    await page.goto(`${BASE}${path}`, { waitUntil: 'networkidle0' });
+    report.noJs.push(
+      await page.evaluate((p) => {
+        const hidden = [...document.querySelectorAll('[data-reveal]')].filter((el) => {
+          const cs = getComputedStyle(el);
+          return cs.visibility === 'hidden' || Number(cs.opacity) === 0;
+        }).length;
+        const hrefs = [...new Set([...document.querySelectorAll('[data-cta]')].map((a) => a.getAttribute('href')))];
+        const broken = hrefs.filter((h) => !(h.startsWith('https://t.me/') || (h.startsWith('#') && document.querySelector(h))));
+        return { page: p || '/', hidden, hrefs, broken };
+      }, path),
+    );
+    await page.close();
+  }
+
   // Метки рекламы и подмена заголовка под хук.
   const ctx = await browser.createBrowserContext();
   const page = await ctx.newPage();
@@ -179,10 +205,16 @@ for (const p of report.pages) {
   if (['320x640', '360x640', '375x812'].includes(p.viewport) && !p.heroCtaInFold) flags.push(`кнопка ниже первого экрана (${p.heroCta?.bottom}px)`);
   if (p.smallText.length) flags.push(`мелкий текст: ${p.smallText.join('; ')}`);
   if (p.smallTaps.length) flags.push(`маленькие зоны нажатия: ${p.smallTaps.join('; ')}`);
+  if (p.badCtas?.length) flags.push(`кнопки ведут в никуда: ${p.badCtas.join(', ')}`);
   if (p.problems.length) flags.push(`консоль: ${p.problems.join(' | ')}`);
   if (p.sticky && (p.sticky.atTop !== false || p.sticky.atHosts !== true)) flags.push(`липкая кнопка: ${JSON.stringify(p.sticky)}`);
   if (flags.length) failures += 1;
   console.log(`${flags.length ? '✖' : '✔'} ${p.page} ${p.viewport} cta=${JSON.stringify(p.heroCta)}${flags.length ? `\n   ${flags.join('\n   ')}` : ''}`);
+}
+for (const n of report.noJs ?? []) {
+  const bad = n.hidden > 0 || n.broken.length > 0;
+  if (bad) failures += 1;
+  console.log(`${bad ? '✖' : '✔'} без JS ${n.page}: скрытых блоков ${n.hidden}, ссылки кнопок ${n.hrefs.join(', ')}${n.broken.length ? ` — битые: ${n.broken.join(', ')}` : ''}`);
 }
 console.log('split:', JSON.stringify(report.split));
 console.log('utm:', JSON.stringify(report.utm));

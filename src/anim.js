@@ -6,6 +6,33 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger';
 gsap.registerPlugin(ScrollTrigger);
 
 const REVEAL_OFFSET_Y = 28;
+const FALLBACK_VIEWPORT_SHARE = 0.95;
+
+function showAll(items) {
+  gsap.set(items, { autoAlpha: 1, y: 0 });
+}
+
+// Страховка: если ScrollTrigger по какой-то причине не сработал (встроенные браузеры бывают капризны),
+// блок всё равно проявится, когда окажется на экране.
+function revealFallback(items) {
+  const pending = new Set(items);
+  let frame = 0;
+  const check = () => {
+    frame = 0;
+    const edge = window.innerHeight * FALLBACK_VIEWPORT_SHARE;
+    pending.forEach((el) => {
+      if (el.getBoundingClientRect().top < edge) {
+        if (Number(gsap.getProperty(el, 'autoAlpha')) < 1) gsap.to(el, { autoAlpha: 1, y: 0, duration: 0.6, ease: 'expo.out' });
+        pending.delete(el);
+      }
+    });
+    if (!pending.size) window.removeEventListener('scroll', onScroll);
+  };
+  const onScroll = () => {
+    if (!frame) frame = window.requestAnimationFrame(check);
+  };
+  window.addEventListener('scroll', onScroll, { passive: true });
+}
 
 function revealBelowFold() {
   const fold = window.innerHeight * 0.92;
@@ -14,20 +41,26 @@ function revealBelowFold() {
     .filter((el) => el.getBoundingClientRect().top > fold);
   if (!items.length) return;
 
-  gsap.set(items, { autoAlpha: 0, y: REVEAL_OFFSET_Y });
-  ScrollTrigger.batch(items, {
-    start: 'top 90%',
-    once: true,
-    onEnter: (batch) =>
-      gsap.to(batch, {
-        autoAlpha: 1,
-        y: 0,
-        duration: 0.8,
-        ease: 'expo.out',
-        stagger: 0.08,
-        overwrite: true,
-      }),
-  });
+  try {
+    gsap.set(items, { autoAlpha: 0, y: REVEAL_OFFSET_Y });
+    ScrollTrigger.batch(items, {
+      start: 'top 90%',
+      once: true,
+      onEnter: (batch) =>
+        gsap.to(batch, {
+          autoAlpha: 1,
+          y: 0,
+          duration: 0.8,
+          ease: 'expo.out',
+          stagger: 0.08,
+          overwrite: true,
+        }),
+    });
+    revealFallback(items);
+  } catch (error) {
+    showAll(items);
+    throw error;
+  }
 }
 
 function popMoneyPill() {

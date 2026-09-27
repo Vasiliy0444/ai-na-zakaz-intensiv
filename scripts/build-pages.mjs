@@ -5,7 +5,8 @@
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { HOOK_HEADLINES, INDEXABLE, SITE, VARIANTS } from '../src/config.js';
+import { BOT_USERNAME, HOOK_HEADLINES, INDEXABLE, SITE, VARIANTS } from '../src/config.js';
+import { buildBotUrl, buildStartPayload } from '../src/lib/attribution.js';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const template = readFileSync(resolve(root, 'src/template.html'), 'utf8');
@@ -21,6 +22,13 @@ const headScript = `<script>(function(){var d=document.documentElement,ok=${JSON
 // Подмена заголовка под хук рекламы по utm_content — сразу после <h1>, до отрисовки.
 const hookScript = `<script>(function(){var h=${JSON.stringify(HOOK_HEADLINES)},k='';try{k=(new URLSearchParams(location.search).get('utm_content')||'').toLowerCase()}catch(e){}for(var key in h){if(k.indexOf(key)>-1){var el=document.getElementById('hero-title');el.innerHTML=h[key];el.setAttribute('data-hook',key);break}}})();</script>`;
 
+// Ссылка кнопок прямо в HTML: страница ведёт в бот, даже если JS не загрузился.
+// JS потом добавит в метку UTM. Пока бот не задан — якорь на финальный блок страницы.
+function staticCtaHref(variant) {
+  const payload = buildStartPayload(variant, { source: '', campaign: '', content: '' });
+  return buildBotUrl(BOT_USERNAME, payload) ?? '#start-now';
+}
+
 function render(variant, { ogPath }) {
   const isAuto = variant === 'auto';
   const theme = isAuto ? VARIANTS.a.themeColor : VARIANTS[variant].themeColor;
@@ -34,6 +42,7 @@ function render(variant, { ogPath }) {
     .replaceAll('{{OG_IMAGE}}', `${SITE.url}${ogPath}`)
     .replace('{{HEAD_SCRIPT}}', isAuto ? headScript : '')
     .replace('{{HOOK_SCRIPT}}', hookScript)
+    .replaceAll('href="#start"', `href="${escapeAttr(staticCtaHref(variant))}"`)
     // CSP вставляет scripts/postbuild.mjs после сборки, когда известны хеши встроенных скриптов.
     .replace(/\s*<meta http-equiv="Content-Security-Policy" content="\{\{CSP\}\}">/, '');
 }
